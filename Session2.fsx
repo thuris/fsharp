@@ -2,7 +2,7 @@
 
 let add (x:int) y = x + y
 add 1 2 
-//
+
 // "typical" languages: a function take 1 thing = arguments,
 // gives you back one thing = output
 let alsoAdd (x,y) = x + y
