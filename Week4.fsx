@@ -7,10 +7,10 @@ let nTides = "ACCTGGTGTG"
 //first using fold
 let foldEm = for i in ['A';'C';'G';'T'] do
     Seq.fold iterate (fun x -> x = i) nTides -> results
-    printf "%i" results
+    |> printf "%i" results
 
 //next iterating with match
-let matchEm = for i it nTides do
+let matchEm = for i in nTides do
     match i with
     |'A'
     |'C'
