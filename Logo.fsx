@@ -29,8 +29,8 @@ let createLine (line:Line) : string =
     sprintf """<line x1="%i" y1="%i" x2="%i" y2="%i" style="stroke:rgb(255,0,0);stroke-width:2" /> """ line.Begin.X line.Begin.Y line.End.X line.End.Y
 
 // Iterate through a list of commands. If pen is down, draw a line
-let parseCommands commandList =
-    for i in commandList do match i with 
+let parseCommands commands =
+    for i in commands do match i with 
     | Distance ->
     // Calculate next position
         match direction with
@@ -41,7 +41,9 @@ let parseCommands commandList =
         
         // Draw line? if pen is down, draw a line; if pen is up, move without drawing
         match turtle.penState with
-        | Down -> List.concat linesToDraw newLine -> linesToDraw // Add a line from position to newPosition to the list of linesToDraw
+        | Down -> 
+            // If pen is down, create a line with previous loc as start point and new loc as end point
+            List.concat linesToDraw newLine -> linesToDraw // Add a line from position to newPosition to the list of linesToDraw
         // "<line x1="position.x" y1="position.y" x2="newPosition.x" y2="newPosition.y" stroke: rgb(255, 0, 0), stroke-width:2>"
         | Up -> return unit
 // Update turtle location before going on to the next command    
@@ -59,3 +61,4 @@ let path = "../sampleAttempt.htm"
 let completeCanvas htmlString = 
     File.WriteAllText (path, htmlString) 
 
+do parseCommands commandList
