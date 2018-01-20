@@ -10,16 +10,17 @@ mutable: by default, avoid?
 open System
 open System.IO
 open System.Security.Cryptography
-// First, the model of the domain of all possible turtles
-// Possible directions the turtle can face (N, S, E, W -- implement 360-degree directions later)
-type Direction = North | South | East | West 
+
+// First, model the domain of turtles
+// Previous directions limited to N, S, E, W. Now implementing 360-degree directions (given, not calculated)
+type Direction = float<Degrees> // does this require "Powerpack"?
 type PenState = Up | Down
-type Distance = int
+type Distance = float
 type Command = 
-    | Turn of Direction 
+    | Face of Direction 
     | Go of Distance 
     | SetPen of PenState     
-type Location = {X:int; Y:int}
+type Location = {X:float; Y:float}
 
 type Turtle = {
     direction:Direction
@@ -29,12 +30,12 @@ type Turtle = {
      
 type Line = {Begin:Location; End:Location}
  
-let startDir = North
-let startLoc = {X = 0; Y = 0}
+let startDir = 0.0<Degrees>
+let startLoc = {X = 0.0; Y = 0.0}
 let startPen = Up
 let turtle = {direction = startDir; location = startLoc; penState = startPen}
 let commandList:Command list = []
-// For example, Turn North, SetPen Down, Go 10
+// For example, Face 90.0, SetPen Down, Go 10.0
 // Create an appendable list of lines. When move commands are evaluated, those happening when penState is Down will create an entry to the list
 let linesToDraw:Line list = [] 
 let createLine (line:Line) : string =
@@ -44,12 +45,15 @@ let applyCommand (command:Command) (turtle:Turtle) =
     match command with 
     | Go(distance) ->
     // Calculate next position
-        match (turtle.direction) with
-        | North -> { turtle with location = { turtle.location with Y = (turtle.location.Y+distance) } }
-        | South -> { turtle with location = { turtle.location with Y = (turtle.location.Y-distance) } }
-        | East -> { turtle with location = { turtle.location with X = (turtle.location.X+distance) } }
-        | West -> { turtle with location = { turtle.location with X = (turtle.location.X-distance) } }
-    | Turn(newFacing) ->
+    //  starting with turtle direction and current location, use trig to add distance and determine new location
+    //  So we take a location, an angle and a distance and return a new location...
+        Math.PI * turtle.direction
+    //    match (turtle.direction) with
+    //    | North -> { turtle with location = { turtle.location with Y = (turtle.location.Y+distance) } }
+    //    | South -> { turtle with location = { turtle.location with Y = (turtle.location.Y-distance) } }
+    //    | East -> { turtle with location = { turtle.location with X = (turtle.location.X+distance) } }
+    //    | West -> { turtle with location = { turtle.location with X = (turtle.location.X-distance) } }
+    | Face(newFacing) ->
 // Update turtle direction 
         { turtle with direction = newFacing }
 // Update turtle pen state
@@ -57,14 +61,14 @@ let applyCommand (command:Command) (turtle:Turtle) =
         { turtle with penState = newPenState }
 
 turtle 
-|> applyCommand (Go 10)
-|> applyCommand (Turn East)
-|> applyCommand (Go 20)
+|> applyCommand (Go 10.0)
+|> applyCommand (Face 45.0<Degrees>)
+|> applyCommand (Go 20.0)
 
 [ 
-    Go 10 
-    Turn East
-    Go 20 
+    Go 10.0 
+    Face 90.0<Degrees>
+    Go 20.0 
 ] 
 |> List.fold (fun turtle cmd -> applyCommand cmd turtle) turtle 
 
@@ -81,9 +85,9 @@ let rec turtlePairs (pairs:(Turtle*Turtle) list) (currentTurtle:Turtle) (command
 let testCommands = 
     [ 
         SetPen Down
-        Go 10 
-        Turn East
-        Go 20 
+        Go 10.0 
+        Face 45.0<Degrees>
+        Go 20.0 
     ] 
 let test = turtlePairs [] turtle testCommands
 
@@ -114,7 +118,8 @@ let parseCommands commands =
     for i in commands do match i with 
     | Distance ->
     // Calculate next position
-        match direction with
+    // the following should be replaced with Degrees and radians-based code
+        match direction<Degrees> with
         | North -> let turtle = {turtle with location.Y = (y+i)}
         | South -> let turtle = {turtle with location.Y = (y-i)}
         | East -> let turtle = {turtle with location.X = (x+i)}
@@ -131,7 +136,7 @@ let parseCommands commands =
         let turtle = {turtle with position = newPosition}
     | Facing ->
 // Update turtle direction 
-        let newFacing = i
+        let newFacing = i<Degrees>
         let turtle = {turtle with facing = newFacing}
 // Update turtle pen state
     | PenState ->
