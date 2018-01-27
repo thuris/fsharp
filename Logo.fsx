@@ -9,11 +9,11 @@ mutable: by default, avoid?
 // Implementing highly simplified Logo turtle
 open System
 open System.IO
-open System.Security.Cryptography
 
+[<Measure>] type Degrees
 // First, model the domain of turtles
 // Previous directions limited to N, S, E, W. Now implementing 360-degree directions (given, not calculated)
-type Direction = float<Degrees> // does this require "Powerpack"?
+type Direction = float<Degrees> 
 type PenState = Up | Down
 type Distance = float
 type Command = 
@@ -39,7 +39,12 @@ let commandList:Command list = []
 // Create an appendable list of lines. When move commands are evaluated, those happening when penState is Down will create an entry to the list
 let linesToDraw:Line list = [] 
 let createLine (line:Line) : string =
-    sprintf """<line x1="%i" y1="%i" x2="%i" y2="%i" style="stroke:rgb(255,0,0);stroke-width:2" /> """ line.Begin.X line.Begin.Y line.End.X line.End.Y
+    sprintf """<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" style="stroke:rgb(255,0,0);stroke-width:2" /> """ line.Begin.X line.Begin.Y line.End.X line.End.Y
+
+// [<AutoOpen>]
+// module MyMath = 
+//     let cosinus x = System.Math.Cos(x)
+// cosinus 2.0
 
 let applyCommand (command:Command) (turtle:Turtle) =
     match command with 
@@ -47,7 +52,19 @@ let applyCommand (command:Command) (turtle:Turtle) =
     // Calculate next position
     //  starting with turtle direction and current location, use trig to add distance and determine new location
     //  So we take a location, an angle and a distance and return a new location...
-        Math.PI * turtle.direction
+        let turtleRadians = (2.0 * Math.PI) * turtle.direction / 360.0<Degrees>
+        
+        let newTurtle = { 
+            turtle with 
+                location = {
+                    X = turtle.location.X + distance * cos (turtleRadians)
+                    Y = turtle.location.Y + distance * sin (turtleRadians)
+                    }
+                // x = turtle.location.x + (distance * Math.Cos(turtleRadians)), 
+                // y = y + (distance * Math.Sin(turtleRadians)) 
+            }
+
+        newTurtle
     //    match (turtle.direction) with
     //    | North -> { turtle with location = { turtle.location with Y = (turtle.location.Y+distance) } }
     //    | South -> { turtle with location = { turtle.location with Y = (turtle.location.Y-distance) } }
